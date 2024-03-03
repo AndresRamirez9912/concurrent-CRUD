@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS tasks;
+
+CREATE TABLE tasks (
+    id INTEGER PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    state VARCHAR(20) NOT NULL
+);
+

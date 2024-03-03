@@ -1,0 +1,62 @@
+# Changelog
+
+## [0.0.1]
+
+### Added
+
+- Project structure
+
+## [0.1.1]
+
+### Added
+
+- model Repository
+- SQL Connection
+- SQL Operations
+- Gin Server and endpoints
+
+## [0.1.2]
+
+### Added
+
+- Controllers
+- Model response for Get task request
+- The initial setup of the DB was added
+
+## Changed
+
+- Change Rest Methods
+- The name of the DB file was changed.
+- Change Delete SQL sentence
+- Change Get SQL sentence
+
+## Deleted
+
+- Handlers was deleted (they were replaced by controllers)
+
+## [0.1.3]
+
+### Added
+
+- Utils file with the utils function to send error response
+- Added the error response in each error
+- Added makefile in order to atest using apache bench
+
+## Changed
+
+- Fix delete operation in Update method
+
+## [0.1.4]
+
+### Added
+
+- Utils file with the utils function to send error response
+- Added the error response in each error
+- Added makefile in order to atest using apache bench
+
+## Changed
+
+- Delete Autoincrement in the SQL init file
+- Delete the commands for apache bench using
+- Execute CreateTask as a goroutine
+- Increase the number of connection in the connection pool.
