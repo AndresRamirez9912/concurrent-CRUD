@@ -24,6 +24,14 @@ func (controller *UserController) CreateTask(c *gin.Context) {
 	err := c.BindJSON(task)
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
+	if err = utils.ValidateTaskState(task); err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
 		c.JSON(http.StatusBadRequest, errorResponse)
 		return
 	}
@@ -33,11 +41,13 @@ func (controller *UserController) CreateTask(c *gin.Context) {
 	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
 		c.JSON(http.StatusInternalServerError, errorResponse)
 		return
 	}
 
 	response := &models.GeneralResponse{Success: true}
+	c.Header("Content-Security-Policy", "default-src 'self'")
 	c.JSON(http.StatusOK, response)
 }
 
@@ -51,6 +61,7 @@ func (controller *UserController) GetTask(c *gin.Context) {
 	err := <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
 		c.JSON(http.StatusInternalServerError, errorResponse)
 		return
 	}
@@ -59,6 +70,7 @@ func (controller *UserController) GetTask(c *gin.Context) {
 		GeneralResponse: models.GeneralResponse{Success: true},
 		Task:            <-taskCh,
 	}
+	c.Header("Content-Security-Policy", "default-src 'self'")
 	c.JSON(http.StatusOK, response)
 }
 
@@ -73,16 +85,25 @@ func (controller *UserController) UpdateTask(c *gin.Context) {
 		return
 	}
 
+	if err = utils.ValidateTaskState(task); err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
 	errCh := make(chan error)
 	go controller.Manager.UpdateTask(errCh, *task, taskId)
 	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
 		c.JSON(http.StatusInternalServerError, errorResponse)
 		return
 	}
 
 	response := &models.GeneralResponse{Success: true}
+	c.Header("Content-Security-Policy", "default-src 'self'")
 	c.JSON(http.StatusOK, response)
 }
 
@@ -95,10 +116,12 @@ func (controller *UserController) DeleteTask(c *gin.Context) {
 	err := <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
+		c.Header("Content-Security-Policy", "default-src 'self'")
 		c.JSON(http.StatusInternalServerError, errorResponse)
 		return
 	}
 
 	response := &models.GeneralResponse{Success: true}
+	c.Header("Content-Security-Policy", "default-src 'self'")
 	c.JSON(http.StatusOK, response)
 }

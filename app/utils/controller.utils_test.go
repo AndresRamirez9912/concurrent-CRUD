@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/models"
 )
 
 func TestCreateErrorResponse(t *testing.T) {
@@ -39,6 +40,28 @@ func TestValidateTestId(t *testing.T) {
 		ValidateTestId("", c)
 		if w.Code != http.StatusBadRequest {
 			t.Errorf("Wrong statusCode. Expected: %d, obtained: %d", http.StatusBadRequest, w.Code)
+		}
+	})
+}
+
+func TestValidateTaskState(t *testing.T) {
+	task := &models.Task{
+		Id:          "",
+		Title:       "",
+		Description: "",
+		State:       "en progreso",
+	}
+	t.Run("Valid state", func(t *testing.T) {
+		err := ValidateTaskState(task)
+		if err != nil {
+			t.Errorf("Wrong task state. Expected: %s, obtained: %s", "en progreso", task.State)
+		}
+	})
+	t.Run("Invalid state", func(t *testing.T) {
+		task.State = "error"
+		err := ValidateTaskState(task)
+		if err == nil {
+			t.Errorf("Wrong task state. Expected: %s, obtained: %s", "error", task.State)
 		}
 	})
 }
