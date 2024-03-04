@@ -68,6 +68,17 @@ func TestCreateTask(t *testing.T) {
 		}
 	})
 
+	t.Run("Invalid task state", func(t *testing.T) {
+		controller, c, w := InitMock(nil)
+		invalidTask := &models.Task{Id: "", Title: "", Description: "", State: "error"}
+		invalidJson, _ := json.Marshal(invalidTask)
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(invalidJson))
+		controller.CreateTask(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400 bad request, got", w.Code)
+		}
+	})
+
 	t.Run("Error Creating the Task", func(t *testing.T) {
 		controller, c, w := InitMock(errors.New("test error"))
 		controller.CreateTask(c)
@@ -101,6 +112,17 @@ func TestUpdateTask(t *testing.T) {
 		controller, c, w := InitMock(nil)
 		url, _ := url.Parse("http://localhost:3000/tasks/ ")
 		c.Request.URL = url
+		controller.UpdateTask(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400 bad request, got", w.Code)
+		}
+	})
+
+	t.Run("Invalid task state", func(t *testing.T) {
+		controller, c, w := InitMock(nil)
+		invalidTask := &models.Task{Id: "", Title: "", Description: "", State: "error"}
+		invalidJson, _ := json.Marshal(invalidTask)
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(invalidJson))
 		controller.UpdateTask(c)
 		if w.Code != http.StatusBadRequest {
 			t.Error("Expected status code 400 bad request, got", w.Code)
@@ -150,7 +172,7 @@ func InitMock(desiredError error) (*UserController, *gin.Context, *httptest.Resp
 		Id:          "2",
 		Title:       "Test Task",
 		Description: "Test Description",
-		State:       "Test State",
+		State:       "pendiente",
 	}
 	jsonData, _ := json.Marshal(body)
 

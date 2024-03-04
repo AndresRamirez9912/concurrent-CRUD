@@ -85,3 +85,10 @@
 
 - Fix a little issue in controllers
 - Change the controller, adding an interface in order to receive a interface instead of the object and facilitate the test
+
+## [0.1.7]
+
+### Added
+
+- Util function for body validation and unit test
+- Added the documentation of the project

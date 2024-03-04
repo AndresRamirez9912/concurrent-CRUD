@@ -1,93 +1,160 @@
 # Vozy-tech-evaluation
 
+This project is a task management system where you can Add, Update, Get, and Delete tasks using SQLite DB. It uses concurrency to increase the scalability of the project and handle a large number of requests simultaneously.
 
+| Field       | Use                                                            |
+| ----------- | -------------------------------------------------------------- |
+| TItle       | Assign a name or title of the task                             |
+| Description | Description of the task or instructions                        |
+| State       | Current state of the task (pendiente, en progreso, completada) |
+
+### Dependencies
+
+| Dependency | Version  |
+| ---------- | -------- |
+| go         | v1.20    |
+| Gin        | v1.9.1   |
+| sqlx       | v1.3.5   |
+| go-sqlite3 | v1.14.22 |
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Before starting the project, make sure you have SQLite installed on your PC.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### Install DB
 
-## Add your files
+#### Linux devices
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Update the package management:
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/AndresRamirez9912/vozy-tech-evaluation.git
-git branch -M main
-git push -uf origin main
+```bash
+$ sudo apt update
 ```
 
-## Integrate with your tools
+Install SQLite
 
-- [ ] [Set up project integrations](https://gitlab.com/AndresRamirez9912/vozy-tech-evaluation/-/settings/integrations)
+```bash
+$ sudo apt install sqlite3
+```
 
-## Collaborate with your team
+Verify the installation by checking the version:
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+```bash
+$ sqlite3 --version
+```
 
-## Test and Deploy
+### 1. Install Dependencies
 
-Use the built-in continuous integration in GitLab.
+In order to install the project's dependencies, run this command:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```bash
+$ go get
+```
 
-***
+### 2. Initialyze the DB in your local
 
-# Editing this README
+The project contains a file called "init.sql" where the query is located. To run that command and create the necessary table, use the makefile statement by running the following command:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```bash
+$ make initDB
+```
 
-## Suggestions for a good README
+### 3. Run test
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+In order to check if the project works, run the test command using the following makefile statement:
 
-## Name
-Choose a self-explaining name for your project.
+```bash
+$ make testProject
+```
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+You can check the project coverage using this other makefile command:
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```bash
+$ make coverage
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Starting the project
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+To start the project, run the following command. It starts the backend server on port :3000. (Ensure you are in the root project folder.)
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+```bash
+$ go run main.go
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+URL = http://http://localhost:3000
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Endpoints
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+All these endpoints use the following URL:
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+#### POST - Create Task
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```bash
+URL = http://http://localhost:3000/tasks
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+```bash
+Method = POST
+```
 
-## License
-For open source projects, say how it is licensed.
+This endpoint allows creating a task based on the information provided in the request body as shown in the following example. (Remember that the state can be any of the specific values: pending, in progress, completed.)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```json
+{
+  "title": "Task title",
+  "description": "Task description",
+  "state": "en progreso"
+}
+```
+
+#### GET - Get Task
+
+This endpoint allows getting a task based on the parameter (Id) provided in the URL as shown in the following example.
+
+```bash
+URL = http://http://localhost:3000/tasks/:id
+```
+
+```bash
+Method = GET
+```
+
+#### PUT - Update Task
+
+```bash
+URL = http://http://localhost:3000/tasks
+```
+
+```bash
+Method = PUT
+```
+
+This endpoint allows modifying a desired task based on the URL parameter. The program will update the task information with the data provided in the request body, as shown in the following example. (Remember that the state can be any of the specific values: pending, in progress, completed.)
+
+```json
+{
+  "title": "Task title",
+  "description": "Task description",
+  "state": "en progreso"
+}
+```
+
+#### DELETE - Delete Task
+
+This endpoint allows deleting a task based on the parameter (Id) provided in the URL as shown in the following example.
+
+```bash
+URL = http://http://localhost:3000/tasks/:id
+```
+
+```bash
+Method = DELETE
+```
+
+## Load Test
+
+To assess the efficiency and scalability of the project, use load tests to determine how many requests the project can handle. Use this file to run the tests. You need to have Apache JMeter installed, at least version 5.6.3.
+
+[Jmetter Load Test File](https://drive.google.com/file/d/10ub7CJDsAAWxoenb9NSzq99BAEW7tpZ6/view?usp=sharing)
