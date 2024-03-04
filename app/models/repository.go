@@ -51,7 +51,7 @@ func (repo *SQLRepository) CreateTask(task Task) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("INSERT INTO tasks (id, title, description, state) VALUES ($1,$2,$3,$4)", task.Id, task.Title, task.Description, task.State)
+	_, err = tx.Exec("INSERT INTO tasks (title, description, state) VALUES ($1,$2,$3)", task.Title, task.Description, task.State)
 	if err != nil {
 		log.Println("Error Trying to create task", err)
 		return err

@@ -60,3 +60,14 @@
 - Delete the commands for apache bench using
 - Execute CreateTask as a goroutine
 - Increase the number of connection in the connection pool.
+
+## [0.1.5]
+
+### Added
+
+- Added services layer in order to handle the business logic
+- Added Concurrency to manage the DB operations
+
+## Changed
+
+- Added AutoIncrement in SQL init file

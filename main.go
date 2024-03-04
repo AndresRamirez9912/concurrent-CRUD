@@ -7,13 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/controllers"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/models"
+	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/services"
 )
 
 func main() {
 	db := models.NewSqlConnection()
 	defer db.CloseConnection()
 
-	controller := controllers.NewController(db)
+	manager := services.NewManager(10, db)
+	controller := controllers.NewController(manager)
 
 	router := gin.Default()
 	router.POST("/tasks", controller.CreateTask)

@@ -5,16 +5,17 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/models"
+	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/services"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/utils"
 )
 
 type UserController struct {
-	UserRepository models.Repository
+	Manager *services.TaskManager
 }
 
-func NewController(repo models.Repository) *UserController {
+func NewController(manager *services.TaskManager) *UserController {
 	return &UserController{
-		UserRepository: repo,
+		Manager: manager,
 	}
 }
 
@@ -24,15 +25,17 @@ func (controller *UserController) CreateTask(c *gin.Context) {
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
 		c.JSON(http.StatusBadRequest, errorResponse)
+		return
 	}
 
-	go func() {
-		err = controller.UserRepository.CreateTask(*task)
-		if err != nil {
-			errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
-			c.JSON(http.StatusInternalServerError, errorResponse)
-		}
-	}()
+	errCh := make(chan error)
+	controller.Manager.CreateTask(errCh, *task)
+	err = <-errCh
+	if err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, errorResponse)
+		return
+	}
 
 	response := &models.GeneralResponse{Success: true}
 	c.JSON(http.StatusOK, response)
@@ -42,34 +45,41 @@ func (controller *UserController) GetTask(c *gin.Context) {
 	taskId := c.Param("id")
 	utils.ValidateTestId(taskId, c)
 
-	task, err := controller.UserRepository.GetTask(taskId)
+	errCh := make(chan error)
+	taskCh := make(chan models.Task)
+	controller.Manager.GetTask(errCh, taskId, taskCh)
+	err := <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
 		c.JSON(http.StatusInternalServerError, errorResponse)
+		return
 	}
 
 	response := &models.GetTaskResponse{
 		GeneralResponse: models.GeneralResponse{Success: true},
-		Task:            *task,
+		Task:            <-taskCh,
 	}
 	c.JSON(http.StatusOK, response)
 }
 
 func (controller *UserController) UpdateTask(c *gin.Context) {
-	taskId := c.Query("id")
+	taskId := c.Param("id")
 	utils.ValidateTestId(taskId, c)
-
 	task := &models.Task{}
 	err := c.BindJSON(task)
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
 		c.JSON(http.StatusBadRequest, errorResponse)
+		return
 	}
 
-	err = controller.UserRepository.UpdateTask(*task, taskId)
+	errCh := make(chan error)
+	controller.Manager.UpdateTask(errCh, *task, taskId)
+	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
 		c.JSON(http.StatusInternalServerError, errorResponse)
+		return
 	}
 
 	response := &models.GeneralResponse{Success: true}
@@ -80,10 +90,13 @@ func (controller *UserController) DeleteTask(c *gin.Context) {
 	taskId := c.Param("id")
 	utils.ValidateTestId(taskId, c)
 
-	err := controller.UserRepository.DeleteTask(taskId)
+	errCh := make(chan error)
+	controller.Manager.DeleteTask(errCh, taskId)
+	err := <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
 		c.JSON(http.StatusInternalServerError, errorResponse)
+		return
 	}
 
 	response := &models.GeneralResponse{Success: true}
