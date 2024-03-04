@@ -23,6 +23,3 @@ go.work
 # DataBase file
 *.db
 *.txt
-
-# Coverage result
-coverage

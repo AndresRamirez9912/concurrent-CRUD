@@ -9,13 +9,6 @@ type TaskManager struct {
 	UserRepository models.Repository
 }
 
-type ServiceInterface interface {
-	CreateTask(errCh chan error, task models.Task)
-	GetTask(errCh chan error, taskId string, taskCh chan models.Task)
-	UpdateTask(errCh chan error, task models.Task, taskId string)
-	DeleteTask(errCh chan error, taskId string)
-}
-
 func NewManager(maxWorkers int, repo models.Repository) *TaskManager {
 	return &TaskManager{
 		Semaphore:      make(chan bool, maxWorkers),

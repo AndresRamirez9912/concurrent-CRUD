@@ -71,17 +71,3 @@
 ## Changed
 
 - Added AutoIncrement in SQL init file
-
-## [0.1.6]
-
-### Added
-
-- Unit test for models, controllers, utils and services
-- Debug File
-- CI file with unit test
-- Pull request file with the default message
-
-## Changed
-
-- Fix a little issue in controllers
-- Change the controller, adding an interface in order to receive a interface instead of the object and facilitate the test

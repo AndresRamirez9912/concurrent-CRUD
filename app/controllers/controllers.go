@@ -10,10 +10,10 @@ import (
 )
 
 type UserController struct {
-	Manager services.ServiceInterface
+	Manager *services.TaskManager
 }
 
-func NewController(manager services.ServiceInterface) *UserController {
+func NewController(manager *services.TaskManager) *UserController {
 	return &UserController{
 		Manager: manager,
 	}
@@ -29,7 +29,7 @@ func (controller *UserController) CreateTask(c *gin.Context) {
 	}
 
 	errCh := make(chan error)
-	go controller.Manager.CreateTask(errCh, *task)
+	controller.Manager.CreateTask(errCh, *task)
 	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
@@ -47,7 +47,7 @@ func (controller *UserController) GetTask(c *gin.Context) {
 
 	errCh := make(chan error)
 	taskCh := make(chan models.Task)
-	go controller.Manager.GetTask(errCh, taskId, taskCh)
+	controller.Manager.GetTask(errCh, taskId, taskCh)
 	err := <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
@@ -74,7 +74,7 @@ func (controller *UserController) UpdateTask(c *gin.Context) {
 	}
 
 	errCh := make(chan error)
-	go controller.Manager.UpdateTask(errCh, *task, taskId)
+	controller.Manager.UpdateTask(errCh, *task, taskId)
 	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
@@ -91,7 +91,7 @@ func (controller *UserController) DeleteTask(c *gin.Context) {
 	utils.ValidateTestId(taskId, c)
 
 	errCh := make(chan error)
-	go controller.Manager.DeleteTask(errCh, taskId)
+	controller.Manager.DeleteTask(errCh, taskId)
 	err := <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusInternalServerError, err.Error())
