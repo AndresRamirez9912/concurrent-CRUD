@@ -15,7 +15,9 @@ var task = Task{
 
 func TestNewSqlConnection(t *testing.T) {
 	repo := NewSqlConnection()
-	defer repo.CloseConnection()
+	defer func() {
+		_ = repo.CloseConnection()
+	}()
 
 	t.Run("Open successful", func(t *testing.T) {
 		err := repo.db.Ping()
@@ -53,7 +55,7 @@ func TestCreateTask(t *testing.T) {
 		}
 	})
 	t.Run("Error table doesn't exists", func(t *testing.T) {
-		repo.db.Exec(`DROP TABLE tasks`)
+		_, _ = repo.db.Exec(`DROP TABLE tasks`)
 		err := repo.CreateTask(task)
 		if err == nil {
 			t.Error("Exec funtion must fail:", err)
@@ -86,7 +88,7 @@ func TestGetTask(t *testing.T) {
 	})
 
 	t.Run("Error table doesn't exists", func(t *testing.T) {
-		repo.db.Exec(`DROP TABLE tasks`)
+		_, _ = repo.db.Exec(`DROP TABLE tasks`)
 		_, err := repo.GetTask("1")
 		if err == nil {
 			t.Error("Exec funtion must fail:", err)
@@ -135,7 +137,7 @@ func TestUpdateTask(t *testing.T) {
 	})
 
 	t.Run("Error table doesn't exists", func(t *testing.T) {
-		repo.db.Exec(`DROP TABLE tasks`)
+		_, _ = repo.db.Exec(`DROP TABLE tasks`)
 		err := repo.UpdateTask(newTask, "2")
 		if err == nil {
 			t.Error("Exec funtion must fail:", err)
@@ -166,7 +168,7 @@ func TestDeleteTask(t *testing.T) {
 	})
 
 	t.Run("Error table doesn't exists", func(t *testing.T) {
-		repo.db.Exec(`DROP TABLE tasks`)
+		_, _ = repo.db.Exec(`DROP TABLE tasks`)
 		err := repo.DeleteTask("2")
 		if err == nil {
 			t.Error("Exec funtion must fail:", err)
