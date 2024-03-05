@@ -34,11 +34,6 @@ func (managerMock *managerMock) DeleteTask(errCh chan error, taskId string) {
 	errCh <- managerMock.TestResponse
 }
 
-type managerSuccessMock struct {
-	Semaphore      chan bool
-	UserRepository models.Repository
-}
-
 func TestNewController(t *testing.T) {
 	manager := services.NewManager(10, nil)
 	controller := NewController(manager)

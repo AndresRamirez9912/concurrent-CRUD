@@ -7,3 +7,6 @@ testProject:
 coverage:
 	go test -coverprofile="coverage" ./...
 	go tool cover -html="coverage" 
+
+lint:
+	golangci-lint run

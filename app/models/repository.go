@@ -49,7 +49,12 @@ func (repo *SQLRepository) CreateTask(task Task) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		err := tx.Rollback()
+		if err != nil {
+			log.Fatal("Error trying Rollback", err)
+		}
+	}()
 
 	_, err = tx.Exec("INSERT INTO tasks (title, description, state) VALUES ($1,$2,$3)", task.Title, task.Description, task.State)
 	if err != nil {
@@ -69,7 +74,12 @@ func (repo *SQLRepository) GetTask(id string) (*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		err := tx.Rollback()
+		if err != nil {
+			log.Fatal("Error trying Rollback", err)
+		}
+	}()
 
 	row, err := tx.Query("SELECT * FROM tasks WHERE id=$1", id)
 	if err != nil {
@@ -105,7 +115,12 @@ func (repo *SQLRepository) UpdateTask(task Task, id string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		err := tx.Rollback()
+		if err != nil {
+			log.Fatal("Error trying Rollback", err)
+		}
+	}()
 
 	_, err = tx.Exec("UPDATE tasks SET title=$1, description=$2, state=$3 WHERE id=$4", task.Title, task.Description, task.State, id)
 	if err != nil {
@@ -125,7 +140,12 @@ func (repo *SQLRepository) DeleteTask(id string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		err := tx.Rollback()
+		if err != nil {
+			log.Fatal("Error trying Rollback", err)
+		}
+	}()
 
 	_, err = tx.Exec("DELETE FROM tasks WHERE id=$1", id)
 	if err != nil {

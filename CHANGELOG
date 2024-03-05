@@ -92,3 +92,14 @@
 
 - Util function for body validation and unit test
 - Added the documentation of the project
+
+## [0.1.8]
+
+### Added
+
+- Added middleware in order to limit the amount of goroutines per handler
+- Added lint in CI
+
+### Changed
+
+- Solved lint error
