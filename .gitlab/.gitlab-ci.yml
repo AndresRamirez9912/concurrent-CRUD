@@ -1,36 +1,27 @@
-name: CI
-on:
-  push:
-    branches:
-      - main
-      - master
-  pull_request:
+stages:
+  - build
+  - test
+  - deploy
 
-jobs:
-  run_test:
-    name: Run Test
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Pull the current repository
-        uses: actions/checkout@v3
+build-job:
+  stage: build
+  script:
+    - go build
+  tags:
+    - docker
 
-      - name: Run Unit tests
-        run: go test ./...
-        
-   golangci:
-    name: Run Golang Linter
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Setup Golang environment
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.17"
-          cache: false
+test-job:
+  stage: test
+  script:
+    - go test ./...
+  tags:
+    - docker
 
-      - name: Pull the current repository
-        uses: actions/checkout@v3
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
+lint-job:
+  stage: test
+  script:
+    - apt-get update -qy && apt-get install -y curl
+    - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s v1.45.0
+    - ~/bin/golangci-lint run
+  tags:
+    - docker
