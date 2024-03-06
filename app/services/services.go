@@ -14,6 +14,9 @@ type ServiceInterface interface {
 	GetTask(errCh chan error, taskId string, taskCh chan models.Task)
 	UpdateTask(errCh chan error, task models.Task, taskId string)
 	DeleteTask(errCh chan error, taskId string)
+
+	SignUpUser(errCh chan error, user *models.User)
+	LogInUser(errCh chan error, userCh chan *models.User, userName string)
 }
 
 func NewManager(maxWorkers int, repo models.Repository) *TaskManager {
@@ -65,5 +68,29 @@ func (manager *TaskManager) DeleteTask(errCh chan error, taskId string) {
 			close(errCh)
 		}()
 		errCh <- manager.UserRepository.DeleteTask(taskId)
+	}()
+}
+
+func (manager *TaskManager) SignUpUser(errCh chan error, user *models.User) {
+	manager.Semaphore <- true
+	go func() {
+		defer func() {
+			<-manager.Semaphore
+			close(errCh)
+		}()
+		errCh <- manager.UserRepository.SignUpUser(user)
+	}()
+}
+
+func (manager *TaskManager) LogInUser(errCh chan error, userCh chan *models.User, user string) {
+	manager.Semaphore <- true
+	go func() {
+		defer func() {
+			<-manager.Semaphore
+			close(errCh)
+		}()
+		user, err := manager.UserRepository.LogInUser(user)
+		errCh <- err
+		userCh <- user
 	}()
 }

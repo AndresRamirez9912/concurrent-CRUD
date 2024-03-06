@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/constants"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/models"
+	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/utils"
 )
 
 func TestLimitGoroutines(t *testing.T) {
@@ -46,16 +46,14 @@ func TestValidateUserMiddleware(t *testing.T) {
 
 	t.Run("Valid token", func(t *testing.T) {
 		router := gin.New()
-		auth := &authMock{err: nil}
-		router.Use(ValidateUser(true, auth))
+		router.Use(ValidateUser(true))
 		router.GET("/test", func(c *gin.Context) {
 			c.String(http.StatusOK, "OK")
 		})
 
-		router.Use(ValidateUser(true, auth))
-
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.AddCookie(&http.Cookie{Name: constants.TOKEN, Value: "valid_token"})
+		validToken := utils.CreateJWT(&models.User{Name: "test", Password: "Aa@123"})
+		req.AddCookie(&http.Cookie{Name: constants.TOKEN, Value: validToken})
 
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
@@ -67,8 +65,7 @@ func TestValidateUserMiddleware(t *testing.T) {
 
 	t.Run("Doesn't have token", func(t *testing.T) {
 		router := gin.New()
-		auth := &authMock{err: nil}
-		router.Use(ValidateUser(true, auth))
+		router.Use(ValidateUser(true))
 
 		router.GET("/test", func(c *gin.Context) {
 			c.String(http.StatusOK, "OK")
@@ -85,16 +82,17 @@ func TestValidateUserMiddleware(t *testing.T) {
 
 	t.Run("Invalid token", func(t *testing.T) {
 		router := gin.New()
-		auth := &authMock{err: errors.New("test error")}
-		router.Use(ValidateUser(true, auth))
-
+		router.Use(ValidateUser(true))
 		router.GET("/test", func(c *gin.Context) {
 			c.String(http.StatusOK, "OK")
 		})
 
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.AddCookie(&http.Cookie{Name: constants.TOKEN, Value: "valid_token"})
+		validToken := utils.CreateJWT(&models.User{Name: "test", Password: "Aa@123"})
+		req.AddCookie(&http.Cookie{Name: constants.TOKEN, Value: validToken + "aaaa"})
+
 		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
 
 		router.ServeHTTP(w, req)
 		if w.Code != http.StatusMethodNotAllowed {
@@ -104,9 +102,7 @@ func TestValidateUserMiddleware(t *testing.T) {
 
 	t.Run("Inactive auth validation", func(t *testing.T) {
 		router := gin.New()
-		auth := &authMock{err: nil}
-		router.Use(ValidateUser(false, auth))
-
+		router.Use(ValidateUser(false))
 		router.GET("/test", func(c *gin.Context) {
 			c.String(http.StatusOK, "OK")
 		})
@@ -119,15 +115,4 @@ func TestValidateUserMiddleware(t *testing.T) {
 			t.Errorf("Expected status code %d but got %d", http.StatusOK, w.Code)
 		}
 	})
-}
-
-type authMock struct {
-	err error
-}
-
-func (mock *authMock) LogInAndSignUp(*models.User, string) (string, error) {
-	return "", mock.err
-}
-func (mock *authMock) ValidateUser(string, string) error {
-	return mock.err
 }

@@ -34,21 +34,29 @@ func (managerMock *managerMock) DeleteTask(errCh chan error, taskId string) {
 	errCh <- managerMock.TestResponse
 }
 
-type authMock struct {
-	err error
+func (managerMock *managerMock) SignUpUser(errCh chan error, user *models.User) {
+	errCh <- managerMock.TestResponse
+}
+func (managerMock *managerMock) LogInUser(errCh chan error, userCh chan *models.User, user string) {
+	errCh <- managerMock.TestResponse
+	userCh <- &models.User{Name: "test", Password: "Aaaaaeee3#V29928."}
 }
 
-func (mock *authMock) LogInAndSignUp(*models.User, string) (string, error) {
-	return "", mock.err
+var taskBody = &models.Task{
+	Id:          "2",
+	Title:       "Test Task",
+	Description: "Test Description",
+	State:       "pendiente",
 }
-func (mock *authMock) ValidateUser(string, string) error {
-	return mock.err
+
+var userBody = &models.User{
+	Name:     "name test",
+	Password: "Aaaaaeee3#V29928.",
 }
 
 func TestNewController(t *testing.T) {
 	manager := services.NewManager(10, nil)
-	auth := services.NewAuthService()
-	controller := NewController(manager, auth)
+	controller := NewController(manager)
 
 	_, ok := interface{}(controller.Manager).(services.ServiceInterface)
 	if !ok {
@@ -58,7 +66,7 @@ func TestNewController(t *testing.T) {
 
 func TestCreateTask(t *testing.T) {
 	t.Run("Success result", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		controller.CreateTask(c)
 		if w.Code != http.StatusOK {
 			t.Error("Expected status code 200, got", w.Code)
@@ -66,7 +74,7 @@ func TestCreateTask(t *testing.T) {
 	})
 
 	t.Run("Error parsing the body", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		errorBody := []byte(`{"errorTitle""Test Task","errorDescription":"Test Description","errorState":"Test State"}`)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(errorBody))
 		controller.CreateTask(c)
@@ -76,7 +84,7 @@ func TestCreateTask(t *testing.T) {
 	})
 
 	t.Run("Invalid task state", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		invalidTask := &models.Task{Id: "", Title: "", Description: "", State: "error"}
 		invalidJson, _ := json.Marshal(invalidTask)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(invalidJson))
@@ -87,7 +95,7 @@ func TestCreateTask(t *testing.T) {
 	})
 
 	t.Run("Error Creating the Task", func(t *testing.T) {
-		controller, c, w := InitMock(errors.New("test error"))
+		controller, c, w := InitMock(errors.New("test error"), taskBody)
 		controller.CreateTask(c)
 		if w.Code != http.StatusInternalServerError {
 			t.Error("Expected status code 500 bad request, got", w.Code)
@@ -97,7 +105,7 @@ func TestCreateTask(t *testing.T) {
 
 func TestGetTask(t *testing.T) {
 	t.Run("Success result", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		go controller.GetTask(c)
 		if w.Code != http.StatusOK {
 			t.Error("Expected status code 200, got", w.Code)
@@ -108,7 +116,7 @@ func TestGetTask(t *testing.T) {
 func TestUpdateTask(t *testing.T) {
 
 	t.Run("Success result", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		go controller.UpdateTask(c)
 		if w.Code != http.StatusOK {
 			t.Error("Expected status code 200, got", w.Code)
@@ -116,7 +124,7 @@ func TestUpdateTask(t *testing.T) {
 	})
 
 	t.Run("Error getting the task Id", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		url, _ := url.Parse("http://localhost:3000/tasks/ ")
 		c.Request.URL = url
 		controller.UpdateTask(c)
@@ -126,7 +134,7 @@ func TestUpdateTask(t *testing.T) {
 	})
 
 	t.Run("Invalid task state", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		invalidTask := &models.Task{Id: "", Title: "", Description: "", State: "error"}
 		invalidJson, _ := json.Marshal(invalidTask)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(invalidJson))
@@ -137,7 +145,7 @@ func TestUpdateTask(t *testing.T) {
 	})
 
 	t.Run("Error parsing the body", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		errorBody := []byte(`{"errorTitle""Test Task","errorDescription":"Test Description","errorState":"Test State"}`)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(errorBody))
 		controller.UpdateTask(c)
@@ -150,7 +158,7 @@ func TestUpdateTask(t *testing.T) {
 func TestDeleteTask(t *testing.T) {
 
 	t.Run("Success result", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		go controller.DeleteTask(c)
 		if w.Code != http.StatusOK {
 			t.Error("Expected status code 200, got", w.Code)
@@ -158,7 +166,7 @@ func TestDeleteTask(t *testing.T) {
 	})
 
 	t.Run("Error getting the task Id", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, taskBody)
 		url, _ := url.Parse("http://localhost:3000/tasks/ ")
 		c.Request.URL = url
 		controller.DeleteTask(c)
@@ -171,7 +179,7 @@ func TestDeleteTask(t *testing.T) {
 func TestSignUp(t *testing.T) {
 
 	t.Run("Success result", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, userBody)
 		controller.SignUp(c)
 		if w.Code != http.StatusOK {
 			t.Error("Expected status code 200, got", w.Code)
@@ -179,7 +187,7 @@ func TestSignUp(t *testing.T) {
 	})
 
 	t.Run("Error binding body", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, userBody)
 		c.Request.Body = nil
 		controller.SignUp(c)
 		if w.Code != http.StatusBadRequest {
@@ -187,8 +195,8 @@ func TestSignUp(t *testing.T) {
 		}
 	})
 
-	t.Run("Error login or SignUp", func(t *testing.T) {
-		controller, c, w := InitMock(errors.New("test error"))
+	t.Run("Error SignUp", func(t *testing.T) {
+		controller, c, w := InitMock(errors.New("test error"), userBody)
 		controller.SignUp(c)
 		if w.Code != http.StatusBadRequest {
 			t.Error("Expected status code 400, got", w.Code)
@@ -197,9 +205,8 @@ func TestSignUp(t *testing.T) {
 }
 
 func TestLogIn(t *testing.T) {
-
 	t.Run("Success result", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, userBody)
 		controller.LogIn(c)
 		if w.Code != http.StatusOK {
 			t.Error("Expected status code 200, got", w.Code)
@@ -207,7 +214,7 @@ func TestLogIn(t *testing.T) {
 	})
 
 	t.Run("Error binding body", func(t *testing.T) {
-		controller, c, w := InitMock(nil)
+		controller, c, w := InitMock(nil, userBody)
 		c.Request.Body = nil
 		controller.LogIn(c)
 		if w.Code != http.StatusBadRequest {
@@ -215,8 +222,18 @@ func TestLogIn(t *testing.T) {
 		}
 	})
 
-	t.Run("Error login or LogIn", func(t *testing.T) {
-		controller, c, w := InitMock(errors.New("test error"))
+	t.Run("Error LogIn Operation", func(t *testing.T) {
+		controller, c, w := InitMock(errors.New("test error"), userBody)
+		controller.LogIn(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400, got", w.Code)
+		}
+	})
+
+	t.Run("Error invalid credentials", func(t *testing.T) {
+		errorBody := userBody
+		errorBody.Password = "errorPassword"
+		controller, c, w := InitMock(nil, errorBody)
 		controller.LogIn(c)
 		if w.Code != http.StatusBadRequest {
 			t.Error("Expected status code 400, got", w.Code)
@@ -224,29 +241,19 @@ func TestLogIn(t *testing.T) {
 	})
 }
 
-func InitMock(desiredError error) (*UserController, *gin.Context, *httptest.ResponseRecorder) {
+func InitMock(desiredError error, body any) (*UserController, *gin.Context, *httptest.ResponseRecorder) {
 	managerMock := &managerMock{
 		Semaphore:      make(chan bool, 2),
 		UserRepository: nil,
 		TestResponse:   desiredError,
 	}
 
-	AuthMock := &authMock{
-		err: desiredError,
-	}
-
-	body := &models.Task{
-		Id:          "2",
-		Title:       "Test Task",
-		Description: "Test Description",
-		State:       "pendiente",
-	}
 	jsonData, _ := json.Marshal(body)
 
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	controller := NewController(managerMock, AuthMock)
+	controller := NewController(managerMock)
 
 	url, _ := url.Parse("http://localhost:3000/tasks")
 	c.Request = &http.Request{

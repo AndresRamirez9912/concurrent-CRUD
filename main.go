@@ -22,17 +22,16 @@ func main() {
 
 	// Configuration
 	manager := services.NewManager(50, db)
-	auth := services.NewAuthService()
-	controller := controllers.NewController(manager, auth)
+	controller := controllers.NewController(manager)
 
 	// Router
 	router := gin.Default()
 
 	// Endpoints
-	router.POST("/tasks", middleware.ValidateUser(true, auth), controller.CreateTask)
-	router.GET("/tasks/:id", middleware.ValidateUser(true, auth), controller.GetTask)
-	router.PUT("/tasks/:id", middleware.ValidateUser(true, auth), controller.UpdateTask)
-	router.DELETE("/tasks/:id", middleware.ValidateUser(true, auth), controller.DeleteTask)
+	router.POST("/tasks", middleware.ValidateUser(true), controller.CreateTask)
+	router.GET("/tasks/:id", middleware.ValidateUser(true), controller.GetTask)
+	router.PUT("/tasks/:id", middleware.ValidateUser(true), controller.UpdateTask)
+	router.DELETE("/tasks/:id", middleware.ValidateUser(true), controller.DeleteTask)
 
 	router.Use(middleware.LimitGoroutines())
 

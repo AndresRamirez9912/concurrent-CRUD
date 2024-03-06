@@ -184,6 +184,71 @@ func TestDeleteTask(t *testing.T) {
 	})
 }
 
+func TestSignUpUser(t *testing.T) {
+	repo := &SQLRepository{
+		db: setupTestDatabase(t),
+	}
+	defer repo.db.Close()
+
+	user := &User{
+		Name:     "test name",
+		Password: "test password",
+	}
+
+	t.Run("Successfull SignUp", func(t *testing.T) {
+		err := repo.SignUpUser(user)
+		if err != nil {
+			t.Error("Error signIn the user, expected success:", err)
+		}
+	})
+
+	t.Run("Error table doesn't exists", func(t *testing.T) {
+		_, _ = repo.db.Exec(`DROP TABLE users`)
+		err := repo.SignUpUser(user)
+		if err == nil {
+			t.Error("Exec funtion must fail:", err)
+		}
+	})
+
+	t.Run("Error beginning the transaction", func(t *testing.T) {
+		repo.db.Close()
+		err := repo.SignUpUser(user)
+		if err == nil {
+			t.Error("Begin funtion must fail:", err)
+		}
+	})
+}
+
+func TestLogInUser(t *testing.T) {
+	repo := &SQLRepository{
+		db: setupTestDatabase(t),
+	}
+	defer repo.db.Close()
+
+	t.Run("Successfull LogInUser", func(t *testing.T) {
+		_, err := repo.LogInUser("test")
+		if err != nil {
+			t.Error("Error logIn the user, expected success:", err)
+		}
+	})
+
+	t.Run("Error table doesn't exists", func(t *testing.T) {
+		_, _ = repo.db.Exec(`DROP TABLE users`)
+		_, err := repo.LogInUser("test")
+		if err == nil {
+			t.Error("Exec funtion must fail:", err)
+		}
+	})
+
+	t.Run("Error beginning the transaction", func(t *testing.T) {
+		repo.db.Close()
+		_, err := repo.LogInUser("test")
+		if err == nil {
+			t.Error("Begin funtion must fail:", err)
+		}
+	})
+}
+
 func setupTestDatabase(t *testing.T) *sqlx.DB {
 	db, err := sqlx.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -196,17 +261,27 @@ func setupTestDatabase(t *testing.T) *sqlx.DB {
 			title TEXT,
 			description TEXT,
 			state TEXT
-		)
+		);
+
+		CREATE TABLE users (
+			name VARCHAR(100) PRIMARY KEY,
+			password VARCHAR(100)
+		);
+
 	`)
 
 	if err != nil {
-		t.Fatalf("Error creating tasks table: %v", err)
+		t.Fatalf("Error creating tables: %v", err)
 	}
 
 	_, err = db.Exec(`INSERT INTO tasks (id, title, description, state) VALUES (1, 'Test Task', 'Test Description', 'Test State')`)
-
 	if err != nil {
 		t.Fatalf("Error creating the first task: %v", err)
+	}
+
+	_, err = db.Exec(`INSERT INTO users (name, password) VALUES ('test', 'test')`)
+	if err != nil {
+		t.Fatalf("Error creating the first user: %v", err)
 	}
 
 	return db

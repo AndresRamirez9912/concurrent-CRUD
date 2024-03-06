@@ -85,7 +85,7 @@ $ go run main.go
 URL = http://http://localhost:3000
 ```
 
-### Endpoints
+### Create user
 
 Before manipulating the CRUD endpoints, notice there are two Auth endpoints, **/logIn** and **/signUp**.
 
@@ -110,7 +110,6 @@ Method = POST
 
 This is the body that must be sent, the password has to be:
 
-- Minimum length: 8 characters
 - Contains at least 1 number
 - Contains at least 1 special character
 - Contains at least 1 uppercase letter
@@ -137,7 +136,6 @@ Method = POST
 
 This is the body that must be sent, the password has to be:
 
-- Minimum length: 8 characters
 - Contains at least 1 number
 - Contains at least 1 special character
 - Contains at least 1 uppercase letter
@@ -228,4 +226,4 @@ You can use this link for getting the Postman Collection in order to test the pr
 
 To assess the efficiency and scalability of the project, use load tests to determine how many requests the project can handle. Use this file to run the tests. You need to have Apache JMeter installed, at least version 5.6.3.
 
-[Jmetter Load Test File](https://drive.google.com/file/d/10ub7CJDsAAWxoenb9NSzq99BAEW7tpZ6/view?usp=sharing)
+[Jmetter Load Test File](https://drive.google.com/file/d/1wQKZf_3CZZzxCpY6WfRB713YkqnyUcun/view?usp=drive_link)

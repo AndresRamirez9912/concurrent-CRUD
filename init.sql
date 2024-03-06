@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -7,3 +8,7 @@ CREATE TABLE tasks (
     state VARCHAR(20) NOT NULL
 );
 
+CREATE TABLE users (
+    name VARCHAR(100) PRIMARY KEY,
+    password VARCHAR(100)
+);
