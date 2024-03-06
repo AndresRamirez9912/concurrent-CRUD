@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/constants"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/models"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/services"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/utils"
@@ -11,11 +12,13 @@ import (
 
 type UserController struct {
 	Manager services.ServiceInterface
+	Auth    services.AuthInterface
 }
 
-func NewController(manager services.ServiceInterface) *UserController {
+func NewController(manager services.ServiceInterface, auth services.AuthInterface) *UserController {
 	return &UserController{
 		Manager: manager,
+		Auth:    auth,
 	}
 }
 
@@ -121,6 +124,49 @@ func (controller *UserController) DeleteTask(c *gin.Context) {
 		return
 	}
 
+	response := &models.GeneralResponse{Success: true}
+	c.Header("Content-Security-Policy", "default-src 'self'")
+	c.JSON(http.StatusOK, response)
+}
+
+func (controller *UserController) SignUp(c *gin.Context) {
+	user := &models.User{}
+	err := c.BindJSON(user)
+	if err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
+	token, err := controller.Auth.LogInAndSignUp(user, constants.SIGNUP_URL)
+	if err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+	c.SetCookie(constants.TOKEN, token, 3600, "", "", true, true)
+	response := &models.GeneralResponse{Success: true}
+	c.Header("Content-Security-Policy", "default-src 'self'")
+	c.JSON(http.StatusOK, response)
+}
+
+func (controller *UserController) LogIn(c *gin.Context) {
+	user := &models.User{}
+	err := c.BindJSON(user)
+	if err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
+	token, err := controller.Auth.LogInAndSignUp(user, constants.LOGIN_URL)
+	if err != nil {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
+	c.SetCookie(constants.TOKEN, token, 3600, "/", "", true, true)
 	response := &models.GeneralResponse{Success: true}
 	c.Header("Content-Security-Policy", "default-src 'self'")
 	c.JSON(http.StatusOK, response)

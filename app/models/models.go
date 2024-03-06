@@ -17,3 +17,8 @@ type GetTaskResponse struct {
 	Task Task `json:"task"`
 	GeneralResponse
 }
+
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}

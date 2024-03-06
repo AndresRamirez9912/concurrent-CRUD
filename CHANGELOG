@@ -103,3 +103,11 @@
 ### Changed
 
 - Solved lint error
+
+## [0.2.8]
+
+### Added
+
+- Added user creation, login and SignUp with its test
+- Added user middleware in order to check whether or not the user have logged before with its test.
+- Added the documentation about how to use the user checker middleware

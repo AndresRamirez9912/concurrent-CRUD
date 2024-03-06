@@ -20,14 +20,24 @@ func main() {
 		}
 	}()
 
+	// Configuration
 	manager := services.NewManager(50, db)
-	controller := controllers.NewController(manager)
+	auth := services.NewAuthService()
+	controller := controllers.NewController(manager, auth)
+
+	// Router
 	router := gin.Default()
+
+	// Endpoints
+	router.POST("/tasks", middleware.ValidateUser(true, auth), controller.CreateTask)
+	router.GET("/tasks/:id", middleware.ValidateUser(true, auth), controller.GetTask)
+	router.PUT("/tasks/:id", middleware.ValidateUser(true, auth), controller.UpdateTask)
+	router.DELETE("/tasks/:id", middleware.ValidateUser(true, auth), controller.DeleteTask)
+
 	router.Use(middleware.LimitGoroutines())
-	router.POST("/tasks", controller.CreateTask)
-	router.GET("/tasks/:id", controller.GetTask)
-	router.PUT("/tasks/:id", controller.UpdateTask)
-	router.DELETE("/tasks/:id", controller.DeleteTask)
+
+	router.POST("/signUp", controller.SignUp)
+	router.POST("/logIn", controller.LogIn)
 
 	s := &http.Server{
 		Addr:    ":3000",
