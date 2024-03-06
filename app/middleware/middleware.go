@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/constants"
-	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/services"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/utils"
 )
 
@@ -26,7 +25,7 @@ func LimitGoroutines() gin.HandlerFunc {
 	}
 }
 
-func ValidateUser(active bool, auth services.AuthInterface) gin.HandlerFunc {
+func ValidateUser(active bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Active or deactivate the auth validation
 		if !active {
@@ -36,15 +35,15 @@ func ValidateUser(active bool, auth services.AuthInterface) gin.HandlerFunc {
 
 		token, err := c.Cookie(constants.TOKEN)
 		if err != nil {
-			errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, "Auth not found, please signUp")
+			errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, "Auth not found, please signUp or logIn")
 			c.JSON(http.StatusBadRequest, errorResponse)
 			c.Abort()
 			return
 		}
 
-		err = auth.ValidateUser(constants.VALIDATE_URL, token)
+		err = utils.DecriptJWT(token)
 		if err != nil {
-			errorResponse := utils.CreateErrorResponse(http.StatusMethodNotAllowed, "Invalid auth token, please logIn")
+			errorResponse := utils.CreateErrorResponse(http.StatusMethodNotAllowed, err.Error())
 			c.JSON(http.StatusMethodNotAllowed, errorResponse)
 			c.Abort()
 			return

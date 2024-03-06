@@ -111,3 +111,19 @@
 - Added user creation, login and SignUp with its test
 - Added user middleware in order to check whether or not the user have logged before with its test.
 - Added the documentation about how to use the user checker middleware
+
+## [0.2.9]
+
+### Added
+
+- Added user functions using the local DB instead of Lambda
+
+### Changed
+
+- Deleted the lambda communication functions due to performance issues
+
+## [1.2.10] Fisrt Tag
+
+### Changed
+
+- Change JWT generation due to a discovered bug

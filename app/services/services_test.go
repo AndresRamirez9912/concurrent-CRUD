@@ -24,6 +24,14 @@ func (r *mockRepository) DeleteTask(taskId string) error {
 	return nil
 }
 
+func (r *mockRepository) SignUpUser(user *models.User) error {
+	return nil
+}
+
+func (r *mockRepository) LogInUser(userName string) (*models.User, error) {
+	return &models.User{}, nil
+}
+
 func TestCreateTask(t *testing.T) {
 	manager := NewManager(10, &mockRepository{})
 	errCh := make(chan error)
@@ -66,6 +74,29 @@ func TestDeleteTask(t *testing.T) {
 	errCh := make(chan error)
 
 	manager.DeleteTask(errCh, "1")
+
+	if err := <-errCh; err != nil {
+		t.Errorf("Expected nul error, got %t", err)
+	}
+}
+
+func TestSignUpUser(t *testing.T) {
+	manager := NewManager(10, &mockRepository{})
+	errCh := make(chan error)
+
+	manager.SignUpUser(errCh, &models.User{})
+
+	if err := <-errCh; err != nil {
+		t.Errorf("Expected nul error, got %t", err)
+	}
+}
+
+func TestLogInUser(t *testing.T) {
+	manager := NewManager(10, &mockRepository{})
+	errCh := make(chan error)
+	userCh := make(chan *models.User)
+
+	manager.LogInUser(errCh, userCh, "")
 
 	if err := <-errCh; err != nil {
 		t.Errorf("Expected nul error, got %t", err)

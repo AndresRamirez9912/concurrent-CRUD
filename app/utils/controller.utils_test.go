@@ -65,3 +65,37 @@ func TestValidateTaskState(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateJWT(t *testing.T) {
+	user := &models.User{
+		Name:     "test",
+		Password: "test",
+	}
+	token := CreateJWT(user)
+	_, ok := interface{}(token).(string)
+	if !ok {
+		t.Error("Expected string token")
+	}
+}
+
+func TestDecriptJWT(t *testing.T) {
+	user := &models.User{
+		Name:     "test",
+		Password: "test",
+	}
+	token := CreateJWT(user)
+
+	t.Run("Success Decript", func(t *testing.T) {
+		err := DecriptJWT(token)
+		if err != nil {
+			t.Error("Expected success decription")
+		}
+	})
+
+	t.Run("Error Decript", func(t *testing.T) {
+		err := DecriptJWT("aaaaa")
+		if err == nil {
+			t.Error("Expected error decription")
+		}
+	})
+}

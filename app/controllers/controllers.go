@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/AndresRamirez9912/vozy-tech-evaluation/app/constants"
@@ -12,13 +13,11 @@ import (
 
 type UserController struct {
 	Manager services.ServiceInterface
-	Auth    services.AuthInterface
 }
 
-func NewController(manager services.ServiceInterface, auth services.AuthInterface) *UserController {
+func NewController(manager services.ServiceInterface) *UserController {
 	return &UserController{
 		Manager: manager,
-		Auth:    auth,
 	}
 }
 
@@ -138,13 +137,24 @@ func (controller *UserController) SignUp(c *gin.Context) {
 		return
 	}
 
-	token, err := controller.Auth.LogInAndSignUp(user, constants.SIGNUP_URL)
+	ok, err := regexp.MatchString("[0-9!@#$%^&*a-zA-Z]+", user.Password)
+	if err != nil || !ok {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, "Password must have: 1 number, 1 special character and 1 uppercase letter")
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
+	errCh := make(chan error)
+	go controller.Manager.SignUpUser(errCh, user)
+	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
 		c.JSON(http.StatusBadRequest, errorResponse)
 		return
 	}
-	c.SetCookie(constants.TOKEN, token, 3600, "", "", true, true)
+
+	token := utils.CreateJWT(user)
+	c.SetCookie(constants.TOKEN, token, 3600, "/", "", true, true)
 	response := &models.GeneralResponse{Success: true}
 	c.Header("Content-Security-Policy", "default-src 'self'")
 	c.JSON(http.StatusOK, response)
@@ -159,13 +169,24 @@ func (controller *UserController) LogIn(c *gin.Context) {
 		return
 	}
 
-	token, err := controller.Auth.LogInAndSignUp(user, constants.LOGIN_URL)
+	errCh := make(chan error)
+	userCh := make(chan *models.User)
+	go controller.Manager.LogInUser(errCh, userCh, user.Name)
+	err = <-errCh
 	if err != nil {
 		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, err.Error())
 		c.JSON(http.StatusBadRequest, errorResponse)
 		return
 	}
 
+	storedUser := <-userCh
+	if storedUser.Password != user.Password {
+		errorResponse := utils.CreateErrorResponse(http.StatusBadRequest, "Invalid credentials")
+		c.JSON(http.StatusBadRequest, errorResponse)
+		return
+	}
+
+	token := utils.CreateJWT(user)
 	c.SetCookie(constants.TOKEN, token, 3600, "/", "", true, true)
 	response := &models.GeneralResponse{Success: true}
 	c.Header("Content-Security-Policy", "default-src 'self'")
