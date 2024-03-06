@@ -34,13 +34,25 @@ func (managerMock *managerMock) DeleteTask(errCh chan error, taskId string) {
 	errCh <- managerMock.TestResponse
 }
 
+type authMock struct {
+	err error
+}
+
+func (mock *authMock) LogInAndSignUp(*models.User, string) (string, error) {
+	return "", mock.err
+}
+func (mock *authMock) ValidateUser(string, string) error {
+	return mock.err
+}
+
 func TestNewController(t *testing.T) {
 	manager := services.NewManager(10, nil)
-	controller := NewController(manager)
+	auth := services.NewAuthService()
+	controller := NewController(manager, auth)
 
 	_, ok := interface{}(controller.Manager).(services.ServiceInterface)
 	if !ok {
-		t.Error("Expected ServiceInterface, implemented?", ok)
+		t.Error("Expected ServiceInterface, implemented", ok)
 	}
 }
 
@@ -156,11 +168,71 @@ func TestDeleteTask(t *testing.T) {
 	})
 }
 
+func TestSignUp(t *testing.T) {
+
+	t.Run("Success result", func(t *testing.T) {
+		controller, c, w := InitMock(nil)
+		controller.SignUp(c)
+		if w.Code != http.StatusOK {
+			t.Error("Expected status code 200, got", w.Code)
+		}
+	})
+
+	t.Run("Error binding body", func(t *testing.T) {
+		controller, c, w := InitMock(nil)
+		c.Request.Body = nil
+		controller.SignUp(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400, got", w.Code)
+		}
+	})
+
+	t.Run("Error login or SignUp", func(t *testing.T) {
+		controller, c, w := InitMock(errors.New("test error"))
+		controller.SignUp(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400, got", w.Code)
+		}
+	})
+}
+
+func TestLogIn(t *testing.T) {
+
+	t.Run("Success result", func(t *testing.T) {
+		controller, c, w := InitMock(nil)
+		controller.LogIn(c)
+		if w.Code != http.StatusOK {
+			t.Error("Expected status code 200, got", w.Code)
+		}
+	})
+
+	t.Run("Error binding body", func(t *testing.T) {
+		controller, c, w := InitMock(nil)
+		c.Request.Body = nil
+		controller.LogIn(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400, got", w.Code)
+		}
+	})
+
+	t.Run("Error login or LogIn", func(t *testing.T) {
+		controller, c, w := InitMock(errors.New("test error"))
+		controller.LogIn(c)
+		if w.Code != http.StatusBadRequest {
+			t.Error("Expected status code 400, got", w.Code)
+		}
+	})
+}
+
 func InitMock(desiredError error) (*UserController, *gin.Context, *httptest.ResponseRecorder) {
 	managerMock := &managerMock{
 		Semaphore:      make(chan bool, 2),
 		UserRepository: nil,
 		TestResponse:   desiredError,
+	}
+
+	AuthMock := &authMock{
+		err: desiredError,
 	}
 
 	body := &models.Task{
@@ -174,7 +246,7 @@ func InitMock(desiredError error) (*UserController, *gin.Context, *httptest.Resp
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	controller := NewController(managerMock)
+	controller := NewController(managerMock, AuthMock)
 
 	url, _ := url.Parse("http://localhost:3000/tasks")
 	c.Request = &http.Request{

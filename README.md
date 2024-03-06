@@ -87,7 +87,73 @@ URL = http://http://localhost:3000
 
 ### Endpoints
 
-All these endpoints use the following URL:
+Before manipulating the CRUD endpoints, notice there are two Auth endpoints, **/logIn** and **/signUp**.
+
+### POST - SignUp (create user)
+
+Allows to create a user using AWS Cognito. This endpoint stores a JWT cookie in the request
+
+```bash
+URL = http://localhost:3000/signUp
+```
+
+```bash
+Method = POST
+```
+
+```json
+{
+  "name": "Andres",
+  "password": "Hola#1228."
+}
+```
+
+This is the body that must be sent, the password has to be:
+
+- Minimum length: 8 characters
+- Contains at least 1 number
+- Contains at least 1 special character
+- Contains at least 1 uppercase letter
+- Contains at least 1 lowercase letter
+
+### POST - LogIn (log in user)
+
+Allows log in as a registered user. This endpoint stores a JWT cookie in the request
+
+```bash
+URL = http://localhost:3000/logIn
+```
+
+```bash
+Method = POST
+```
+
+```json
+{
+  "name": "Andres",
+  "password": "Hola#1228."
+}
+```
+
+This is the body that must be sent, the password has to be:
+
+- Minimum length: 8 characters
+- Contains at least 1 number
+- Contains at least 1 special character
+- Contains at least 1 uppercase letter
+- Contains at least 1 lowercase letter
+
+### Active or deactivate the auth validation.
+
+You can activate or deactivate the user validation middleware for specific endpoints, to do that, **change the boolean flag in the main.go file**
+
+- true: The validation is activate
+- false: The validation is deactivated
+
+```go
+router.POST("/tasks", middleware.ValidateUser(true, auth), controller.CreateTask) // User validation activated
+router.GET("/tasks/:id", middleware.ValidateUser(false, auth), controller.GetTask) // User validation deactivated
+```
 
 #### POST - Create Task
 
@@ -152,6 +218,11 @@ URL = http://http://localhost:3000/tasks/:id
 ```bash
 Method = DELETE
 ```
+
+## Postman Test
+
+You can use this link for getting the Postman Collection in order to test the project
+[Postman Collection](https://warped-station-765276.postman.co/workspace/Personal~f9053f70-c36a-4191-b7e3-d342fc1ad905/collection/20027571-79ea39a9-ada2-45b6-b576-e32a78788cf8?action=share&creator=20027571)
 
 ## Load Test
 
